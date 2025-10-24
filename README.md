@@ -25,7 +25,7 @@ The aim of my research is to have the work sit in a compiler like application li
 Deeper dive into our plugin (T.B.C description/screenshots to say which point is implemented in which section of using_path_type.py):
 1. Plug into the AST that Bandit is working through
 2. Build our own tree from it, which represents some (explained deeper in some appropriate comment in each .py file) insecure code pattern
-3. Like in our paper 1, we analyze this tree/graph (TBC tree or graph. Also to take care - potential np complete/np hard problems), and see if it will end up in the dev and security community not-cooperating with each other. Our plugin is an implementation of our first paper (https://ieeexplore.ieee.org/document/10051798), wherein, we use this tree as an input to the VCG designing logic
+3. Like in our paper 1, we analyze this tree/graph (TBC tree or graph. Also to take care - potential np complete/np hard problems), and see if it will end up in the dev and security community not-cooperating with each other.
 4. The VCG design logic will re-design the game, and mainly, provide the payoff values for our game
 5. We then analyze the re-designed game, and decide if we finx or not.
 6. The decision making will involve a threshold design, which will derive from the laws of conservation of energy/matter. This will serve as the basis for the probabilities that we need for the Bayesian game in the end.
