@@ -36,11 +36,15 @@ P.S. A SAST tool may not be the only place to implement this idea, as this logic
 ## Example usage
 - Checkout this code base, and note the location of the root dir
 - Run the command "pip install "<your-workspace>\banditrule"" (the full location from the above step). This will install the bandit plugin, and will make it ready to be picked up by bandit.
-- Once you download the sample code in (TBD), you would run the following command:
+- Once you download the sample code in https://github.com/earthling1984/mypythonbadcode_game_theory_experiment, you would run the following command:
 
-bandit -r -t B705 -x "<your-workspace>\mypythonbadcode\\\_\_pycache\_\_","<your-workspace>\mypythonbadcode\venv" "<your-workspace>\mypythonbadcode"
+bandit -r -t B705 -x "<your-workspace>\mypythonbadcode_game_theory_experiment\\\_\_pycache\_\_","<your-workspace>\mypythonbadcode_game_theory_experiment\venv" "<your-workspace>\mypythonbadcode_game_theory_experiment"
 
 The above command runs bandit on this test code base, with our plugin (numbered 705), excluding certain unnecessary files. The output is expected to be a new branch, with the secure code, given the logic in our bandit plugin.
+
+If you downloaded a version of the bad code without the pycache and venv folders, ignore those 2 -x options, and run the following:
+
+bandit -r -t B705 "<your-workspace>\mypythonbadcode_game_theory_experiment"
 
 A sample output, with the plugin's findings, is below:
 
