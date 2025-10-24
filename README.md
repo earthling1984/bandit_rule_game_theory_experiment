@@ -38,7 +38,7 @@ P.S. A SAST tool may not be the only place to implement this idea, as this logic
 - Run the command "pip install "<your-workspace>\banditrule"" (the full location from the above step). This will install the bandit plugin, and will make it ready to be picked up by bandit.
 - Once you download the sample code in (TBD), you would run the following command:
 
-bandit -r -t B705 -x "<your-workspace>\mypythonbadcode\__pycache__","<your-workspace>\mypythonbadcode\venv" "<your-workspace>\mypythonbadcode"
+bandit -r -t B705 -x "<your-workspace>\mypythonbadcode\\__pycache__","<your-workspace>\mypythonbadcode\venv" "<your-workspace>\mypythonbadcode"
 
 The above command runs bandit on this test code base, with our plugin (numbered 705), excluding certain unnecessary files. The output is expected to be a new branch, with the secure code, given the logic in our bandit plugin.
 
