@@ -7,7 +7,7 @@ banditrule
 - Install ([![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit))
 
 ## Project status
-This is a work-in-progress as of Feb 2025, with my PhD expected to finish around the end of 2025. The experimental setup is expected to be stable by March 2025, with a paper planned to be published around mid-2025. Updates will be made here as needed.
+This is a work-in-progress as of Feb 2025, with my PhD expected to finish around mid to late 2026. The experimental setup is expected to be stable by March 2025, with a paper planned to be published in 2025. Updates will be made here as needed.
 
 ## Description
 This work is an experimental setup for the theoretical concepts of my PhD. Bandit is a SAST (Static Application Security Testing) scanning tool, which is aimed at Python source code. The way a Bandit plugin works - you need to:
