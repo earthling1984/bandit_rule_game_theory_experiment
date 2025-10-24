@@ -37,8 +37,10 @@ T.B.C
 3. game design and analysis
 4. modify code base with secure code
 
-Post PhD - unclear if a plugin like this can be split into different modules. Wasn't an important task for the research itself,
-but for better usability, modular programming is to be implemented in future.
+Post PhD - unclear if a plugin like this can be split into different modules. The Bandit plugin
+seems to want all implementation in one function. Wasn't an important task for the research itself,
+but for better usability, modularization should be figured out and implemented in future by any one interested
+in the implementation aspects
 """
 str_counter=0
 call_counter=0
@@ -51,15 +53,23 @@ desired_global_graph_dir = nx.DiGraph()
 desired_global_graph_undir = nx.DiGraph()
 files_processed_so_far = []
 #Mainly to help with the experiment.
-expected_list_of_files = []
+expected_list_of_files = ['']
+#the smaller list for a smaller sample
+#expected_list_of_files = ['']
 pass_number = 0
 finxed_line = "name=up.using_path(firstname)"
+
+# 1. Define a sample convex function for the complex analysis
+def convex_function(x):
+    return x**2
 
 def solve_zerosum_with_linprog(U):
     '''solve_zerosum_with_linprog(): Solve a zero sum game using linear programming
     
         INPUT: U (k*k square matrix), payoffs in zero sum game (opponent gets -U.T)
         OUTPUT: alpha (k-vector) of probability weights for each action (the symmetric equilibrium)
+        
+        Source: https://github.com/GamEconCph/2023-lectures/blob/main/Bayesian%20Games/bimatrix.py
     '''
     k, k2 = U.shape
     assert k == k2, f'Input matrix must be square, got {k}*{k2}'
@@ -99,7 +109,6 @@ def solve_zerosum_with_linprog(U):
     alpha = sol.x[1:]
     return alpha
 
-
 def best_response(U, i): 
     """best_response(): 
         INPUTS: 
@@ -111,6 +120,9 @@ def best_response(U, i):
                 and br[:,1] are the best responses. If one strategy a
                 has multiple best responses, then there will be several
                 columns in br with br[:,0]==a. 
+                
+        SOURCE:
+        https://github.com/GamEconCph/2023-lectures/blob/main/Bayesian%20Games/bimatrix.py
     """
     j = 1-i # opponent
     if i == 0: 
@@ -138,7 +150,6 @@ def best_response(U, i):
 
     return np.array(br)
     
-
 def print_payoffs(U, A, round_decimals=None): 
     '''print_payoffs: Nicely formatted for a 2*2 game 
         INPUTS: 
@@ -149,6 +160,9 @@ def print_payoffs(U, A, round_decimals=None):
         
         OUTPUT:
             tab: pandas dataframe, na1*na2 with payoff tuples 
+            
+        SOURCE:
+        https://github.com/GamEconCph/2023-lectures/blob/main/Bayesian%20Games/bimatrix.py
     '''
     assert len(U) == 2, f'only implemented for 2-player games'
     assert len(A) == 2, f'only implemented for 2-player games'
@@ -158,26 +172,41 @@ def print_payoffs(U, A, round_decimals=None):
     A1 = A[0]
     A2 = A[1]
 
+    print("------printing from within the print_payoffs function--------")
     print(U1)
     print(U2)
     print(A1)
     print(A2)
+    
 
     na1,na2 = U1.shape
+    print("------na1------")
+    print(na1)
+    print("------na1------")
+    print("------na2------")
+    print(na2)
+    print("------na2------")
     assert len(A1) == na1
     assert len(A2) == na2
 
     if not (round_decimals is None):
         assert np.isscalar(round_decimals), f'round_decimals must be an integer' 
-        U1 = U1.round(round_decimals)
-        U2 = U2.round(round_decimals)
+        print(type(round_decimals))
+        #U1 = U1.round(round_decimals)
+        #U2 = U2.round(round_decimals)
 
     # "matrix" of tuples 
-    X = [[(U1[r,c],U2[r,c]) for c in range(na2)] for r in range(na1)]
+    #X = [[("unknown","unknown") if (((A1[r]=="U") and ((A2[c]=="L") or (A2[c]=="LL"))) or ((A1[r]=="D") and ((A2[c]=="R") or (A2[c]=="RR")))) else (U1[r,c],U2[r,c]) for c in range(na2)] for r in range(na1)]
+    #matrix navigation in action
+    X = [[("unknown","unknown") if ((A1[r]=="D") and ((A2[c]=="R") or (A2[c]=="RR"))) else (U1[r,c],U2[r,c]) for c in range(na2)] for r in range(na1)]
+    #X = [[(U1[r,c],U2[r,c]) for c in range(na2)] for r in range(na1)]
+    print("------X------")
+    print(X)
+    print("------X------")
 
     # dataframe version 
     tab = pd.DataFrame(X, columns=A2, index=A1)
-    
+    print("------printing from within the print_payoffs function--------")
     return tab 
 
 def find_undominated_actions(U_in, i, A, DOPRINT=False):
@@ -193,6 +222,8 @@ def find_undominated_actions(U_in, i, A, DOPRINT=False):
             AA: (list) undominated actions 
             IA: (list of integers) integers i s.t. AA = [A[i] for i in IA]
             ANYDOMINATED: (bool) True if at least one action was strictly dominated
+            
+        Source: https://github.com/GamEconCph/2023-lectures/blob/main/Bayesian%20Games/bimatrix.py
     '''
     
     AA = []
@@ -206,31 +237,73 @@ def find_undominated_actions(U_in, i, A, DOPRINT=False):
     else: 
         # 1.b transpose 
         U = U_in.T 
-    
+    print("----U in find undominated actions-----")
+    print(U)
+    print("----U in find undominated actions-----")
     # 2. determine if each action has other dominated actions 
-    for ia in range(nA): 
+    for ia in range(nA):
         DOMINATED = False 
+        UNKNOWN = False
+        UNK1 = []
+        UNK2 = []
                 
         for ia_ in range(nA): 
             # 2.a loop through all *other* strategies 
+            print("ia")
+            print(ia)
+            print("U[ia]")
+            print(U[ia])
+            print("ia_")
+            print(ia_)
+            print("U[ia_]")
+            print(U[ia_])
             if ia_ == ia: 
                 continue
-
+            indices = np.where(U == "unknown")
+            print(type(indices))
+            num_indices = len(indices)
+            if(indices[num_indices-1]):
+                UNKNOWN = True
+                print("num_indices",num_indices)
+                print("indices", indices)
+                print("All indices of unknown:", num_indices)
+                print(indices[num_indices-1])
+                unknown_at = indices[num_indices-1][0]
+                print("Unknown at", unknown_at)
+                UNK1=np.delete(U[ia],unknown_at)
+                UNK2=np.delete(U[ia_],unknown_at)
             # 2.b check if ia_ always gives a higher payoff than ia (i.e. domination)
-            if np.all(U[ia_] > U[ia]): 
-                DOMINATED = True
-                break # exit search: enough that we have found one 
-        
+            #T.B.C adding a check for "unknown" in a value ((U[ia_] != "unknown") or (U[ia] != "unknown"))
+            if UNKNOWN == False:
+                if np.all(U[ia_] > U[ia]):
+                    print("found dominated strategy") 
+                    print(U[ia])
+                    print(U[ia_])
+                    print("found dominated strategy")
+                    DOMINATED = True
+                    break # exit search: enough that we have found one
+            elif UNKNOWN == True:
+                if np.all(UNK1 > UNK2):
+                    print("found dominated strategy") 
+                    print(UNK1)
+                    print(UNK2)
+                    print("found dominated strategy")
+                    DOMINATED = True
+                    break # exit search: enough that we have found one
+        if UNKNOWN == False:
         # 2.c append or not 
-        if not DOMINATED: 
-            AA.append(A[ia])
-            IA.append(ia)
+            if not DOMINATED: 
+                AA.append(A[ia])
+                IA.append(ia)
+        elif UNKNOWN == True:
+            if not DOMINATED: 
+                AA.append(UNK2)
+                IA.append(ia)
             
     # 3. convenient boolean 
     ANYDOMINATED = (len(AA) < len(A))
     
     return AA,IA,ANYDOMINATED
-
 
 def IESDS(A, U, DOPRINT=False, maxit=10000): 
     '''Iterated Elimination of Strictly Dominated Strategies 
@@ -245,6 +318,8 @@ def IESDS(A, U, DOPRINT=False, maxit=10000):
         OUTPUT: Actions and payoffs for the undominated game
             A_undominated: (n-list of vectors) 
             U_undominated: (n-list of matrices of payoffs)
+            
+        Source: https://github.com/GamEconCph/2023-lectures/blob/main/Bayesian%20Games/bimatrix.py
     '''
     
     U_undominated = copy.copy(U)
@@ -287,7 +362,7 @@ def IESDS(A, U, DOPRINT=False, maxit=10000):
 
 def compute_full_matrix(U1, U2, p, action_names=None):
     """      
-    "        Source of this method, and the ones above too: https://github.com/GamEconCph/2023-lectures/blob/main/Bayesian%20Games/BNE.ipynb?short_path=6214124
+    "        Source of this method: in the preview tab of https://github.com/GamEconCph/2023-lectures/blob/main/Bayesian%20Games/BNE.ipynb?short_path=6214124
     "        This method has been tweaked to accommodate the theory of conservation of payoffs, which result in jagged matrices/arrays
     "        Assumes that only player 2's type varies \n",
     "        (this means that player 1 has one action per row in U1, \n",
@@ -310,8 +385,10 @@ def compute_full_matrix(U1, U2, p, action_names=None):
     nA1, nA2 = U1[0].shape
     print("nA1 is",nA1)
     print("nA2 is",nA2)
-    t1 = np.empty((nA1, nA2*nA2))
-    t2 = np.empty((nA1, nA2*nA2))
+    #t1 = np.zeros((nA1, nA2*nA2))
+    #t2 = np.zeros((nA1, nA2*nA2))
+    t1 = np.array([[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,""]])
+    t2 = np.array([[0.0,0.0,0.0,0.0],[0.0,0.0,0.0,""]])
     print("t1 is",t1)
     print("t2 is",t2)
     
@@ -332,25 +409,27 @@ def compute_full_matrix(U1, U2, p, action_names=None):
                 t1[ia1,i_col] = p*U1[0][ia1,a2_1] + (1.-p)*U1[1][ia1,a2_2]
                 t2[ia1,i_col] = p*U2[0][ia1,a2_1] + (1.-p)*U2[1][ia1,a2_2]
                 """                    
-                if (((U1[0][ia1,a2_1]) == "no-game") or ((U1[1][ia1,a2_2]) == "no-game")):
-                    if (((U1[0][ia1,a2_1]) == "no-game") and not ((U1[1][ia1,a2_2]) == "no-game")):
+                if (((U1[0][ia1,a2_1]) == "unknown") or ((U1[1][ia1,a2_2]) == "unknown")):
+                    if (((U1[0][ia1,a2_1]) == "unknown") and not ((U1[1][ia1,a2_2]) == "unknown")):
                         t1[ia1,i_col] = (1.-p)*float(U1[1][ia1,a2_2])
-                    elif (not ((U1[0][ia1,a2_1]) == "no-game") and ((U1[1][ia1,a2_2]) == "no-game")):
+                    elif (not ((U1[0][ia1,a2_1]) == "unknown") and ((U1[1][ia1,a2_2]) == "unknown")):
                         t1[ia1,i_col] = p*float(U1[0][ia1,a2_1])
                     else:
-                        print("Looks like we got all no-games, so skipping assignments altogether")
-                        continue
+                        print("Looks like we got all unknowns, so skipping assignments altogether")
+                        t1[ia1,i_col] = "unknown"
+                        #continue
                 else:
                     t1[ia1,i_col] = p*float(U1[0][ia1,a2_1]) + (1.-p)*float(U1[1][ia1,a2_2])
                     
-                if (((U2[0][ia1,a2_1]) == "no-game") or ((U2[1][ia1,a2_2]) == "no-game")):
-                    if (((U2[0][ia1,a2_1]) == "no-game") and not ((U2[1][ia1,a2_2]) == "no-game")):
-                        t1[ia1,i_col] = (1.-p)*float(U2[1][ia1,a2_2])
-                    elif (not ((U2[0][ia1,a2_1]) == "no-game") and ((U2[1][ia1,a2_2]) == "no-game")):
-                        t1[ia1,i_col] = p*float(U2[0][ia1,a2_1])
+                if (((U2[0][ia1,a2_1]) == "unknown") or ((U2[1][ia1,a2_2]) == "unknown")):
+                    if (((U2[0][ia1,a2_1]) == "unknown") and not ((U2[1][ia1,a2_2]) == "unknown")):
+                        t2[ia1,i_col] = (1.-p)*float(U2[1][ia1,a2_2])
+                    elif (not ((U2[0][ia1,a2_1]) == "unknown") and ((U2[1][ia1,a2_2]) == "unknown")):
+                        t2[ia1,i_col] = p*float(U2[0][ia1,a2_1])
                     else:
-                        print("Looks like we got all no-games, so skipping assignments altogether")
-                        continue
+                        print("Looks like we got all unknowns, so skipping assignments altogether")
+                        t2[ia1,i_col] = "unknown"
+                        #continue
                 else:
                     print("Am inside the else in the innermost for loop")
                     print("U2[0][ia1,a2_1] is",U2[0][ia1,a2_1])
@@ -399,8 +478,10 @@ the node operators are, and what the cost of a route is in the presence and abse
 the payoff for that operator - could either be a negative or a positive payoff. For our case, the developer and the security players 
 are the operators. 
 """
-def get_payoffs_from_vcg(basis, structure):
-    a=0#dummy value to get rid off the IDE error
+def get_payoffs_from_vcg(cost_without, cost_with):
+    vcg_classical_value = ((cost_without)*(-1))-((cost_with)*(-1))
+    payoff = vcg_classical_value*(-1)
+    return payoff
     
 @test.checks("Call")
 @test.test_id("B705")
@@ -436,14 +517,14 @@ def is_path_there_call(context):
     print("================================end writing context object================================")
     
     r"""
-    The Context repr is a tricky representation. It cannot be directly loaded via json.loads, as it's not a standard json.
+    The Context repr is a tricky representation. 
+    It cannot be directly loaded via json.loads, as it's not a standard json.
     The below sections clean the json, with the main goal being to get the line number where the issue is found. 
     """
+    
     first_curly_bracket_open = contextrepr.find("{")
     last_curly_bracket_close = contextrepr.rfind("}")
-    
     print("First curly bracket open found at index location",first_curly_bracket_open,"and the last curly bracket close found at index",last_curly_bracket_close)
-    
     context_json_str = contextrepr[first_curly_bracket_open:(last_curly_bracket_close+1)]
     context_json_str = context_json_str.replace("'","\"")
     bad_import_curly_bracket_open_approx = 0
@@ -555,9 +636,9 @@ def is_path_there_call(context):
                     )
     
     #checking for an experimental use case
-    if (context.call_function_name_qual=='html.escape' and not 'usepath.py' in context.filename):
-        print("We want the security logic around html.escape to be in usepath.py, but it was found in", context.filename)
-        print("If the outcome of the Game Theoretic analysis is to finx, this plugin will checking a copy of the code with the logic in usepath.py. It can be a candidate for merging with the main branch.")
+    if (context.call_function_name_qual=='html.escape' and not 'commonvalidator.py' in context.filename):
+        print("We want the security logic around html.escape to be in commonvalidator.py, but it was found in", context.filename)
+        print("If the outcome of the Game Theoretic analysis is to finx, this plugin will check-in a copy of the code with the logic in commonvalidator.py. It can be a candidate for merging with the main branch.")
         r"""
         TODO
         1. Call VCG payment calculator with actual values. Values below are dummy ones. (the num of hops can be = the distance from the source to the end validation location, farther it is, more is the num of hops, making it worse for the dev)
@@ -569,91 +650,103 @@ def is_path_there_call(context):
         # Keeping filename unique for starters. Q to ponder: allow duplicate nodes? For capturing any repetition of code blocks?
        
         #Directed and undirected graph long
-        #The way to read the global graph - how many times is usepath's logic to be checked in the target file? That number is appended to usepath.py. We chain each usage, and build a graph to showcase the replication
+        #The way to read the global graph - how many times is commonvalidator's logic to be checked in the target file? That number is appended to commonvalidator.py. We chain each usage, and build a graph to showcase the replication
         usepath_this_iter = ''
         global_graph_num_of_edges=my_global_graph.size()
         print('Size of the vulnerable global graph, i.e. the number of edges, is',global_graph_num_of_edges)
         if global_graph_num_of_edges == 0:
-            usepath_this_iter = 'usepath.py (0)'
-            my_global_graph.add_node(filename)
+            usepath_this_iter = 'commonvalidator.py (0)'
+            my_global_graph.add_node(filename, type='notcommonvalidator')
             print("adding the node for", filename)
-            my_global_graph.add_node(usepath_this_iter, type='usepath')
+            my_global_graph.add_node(usepath_this_iter)
             print("adding the node for", usepath_this_iter)
             my_global_graph.add_weighted_edges_from([(filename,usepath_this_iter,2.0)])
-            my_global_graph_undirected.add_node(filename)
+            my_global_graph_undirected.add_node(filename, type='notcommonvalidator')
             print("adding the node for", filename)
-            my_global_graph_undirected.add_node(usepath_this_iter, type='usepath')
+            my_global_graph_undirected.add_node(usepath_this_iter)
             print("adding the node for", usepath_this_iter)
             my_global_graph_undirected.add_weighted_edges_from([(filename,usepath_this_iter,2.0)])
         elif global_graph_num_of_edges == 1:
-            usepath_last_iter = 'usepath.py ('+str(global_graph_num_of_edges-1)+')'
-            usepath_this_iter = 'usepath.py ('+str(global_graph_num_of_edges)+')'
-            my_global_graph.add_node(filename)
+            usepath_last_iter = 'commonvalidator.py ('+str(global_graph_num_of_edges-1)+')'
+            usepath_this_iter = 'commonvalidator.py ('+str(global_graph_num_of_edges)+')'
+            my_global_graph.add_node(filename, type='notcommonvalidator')
             print("adding the node for", filename)
-            my_global_graph.add_node(usepath_this_iter, type='usepath')
+            my_global_graph.add_node(usepath_this_iter)
             print("adding the node for", usepath_this_iter)
             my_global_graph.add_weighted_edges_from([(usepath_last_iter,filename,0.0)])
             my_global_graph.add_weighted_edges_from([(filename,usepath_this_iter,2.0)])
-            my_global_graph_undirected.add_node(filename)
+            my_global_graph_undirected.add_node(filename, type='notcommonvalidator')
             print("adding the node for", filename)
-            my_global_graph_undirected.add_node(usepath_this_iter, type='usepath')
+            my_global_graph_undirected.add_node(usepath_this_iter)
             print("adding the node for", usepath_this_iter)
             my_global_graph_undirected.add_weighted_edges_from([(usepath_last_iter,filename,0.0)])
             my_global_graph_undirected.add_weighted_edges_from([(filename,usepath_this_iter,2.0)])
         else:
-            usepath_last_iter = 'usepath.py ('+str(global_graph_num_of_edges-2)+')'
-            usepath_this_iter = 'usepath.py ('+str(global_graph_num_of_edges)+')'
-            my_global_graph.add_node(filename)
+            round_counter=(global_graph_num_of_edges+1)/2
+            usepath_last_iter_dir = 'commonvalidator.py ('+str(round_counter-1)+')'
+            usepath_this_iter_dir = 'commonvalidator.py ('+str(round_counter)+')'
+            usepath_last_iter_undir = 'commonvalidator.py ('+str(global_graph_num_of_edges-2)+')'
+            usepath_this_iter_undir = 'commonvalidator.py ('+str(global_graph_num_of_edges)+')'
+            my_global_graph.add_node(filename, type='notcommonvalidator')
             print("adding the node for", filename)
-            my_global_graph.add_node(usepath_this_iter, type='usepath')
-            print("adding the node for", usepath_this_iter)
-            my_global_graph.add_weighted_edges_from([(usepath_last_iter,filename,0.0)])
-            my_global_graph.add_weighted_edges_from([(filename,usepath_this_iter,2.0)])
-            my_global_graph_undirected.add_node(filename)
+            my_global_graph.add_node(usepath_this_iter_dir)
+            print("adding the node for", usepath_this_iter_dir)
+            my_global_graph.add_weighted_edges_from([(usepath_last_iter_dir,filename,0.0)])
+            my_global_graph.add_weighted_edges_from([(filename,usepath_this_iter_dir,2.0)])
+            my_global_graph_undirected.add_node(filename, type='notcommonvalidator')
             print("adding the node for", filename)
-            my_global_graph_undirected.add_node(usepath_this_iter, type='usepath')
-            print("adding the node for", usepath_this_iter)
-            my_global_graph_undirected.add_weighted_edges_from([(usepath_last_iter,filename,0.0)])
-            my_global_graph_undirected.add_weighted_edges_from([(filename,usepath_this_iter,2.0)])
+            my_global_graph_undirected.add_node(usepath_this_iter_undir)
+            print("adding the node for", usepath_this_iter_undir)
+            my_global_graph_undirected.add_weighted_edges_from([(usepath_last_iter_undir,filename,0.0)])
+            my_global_graph_undirected.add_weighted_edges_from([(filename,usepath_this_iter_undir,2.0)])
         
         #Directed graph hub-and-spoke
         my_global_graph_for_inout.add_weighted_edges_from([
-                                (filename,'usepath.py',2.0)])
+                                (filename,'commonvalidator.py',2.0)])
         
         return bandit.Issue(
             severity=bandit.HIGH,
             confidence=bandit.HIGH,
             text="The XSS check is not in the main validator, and is insecure, as it increases the fix and maintenance time for such issues. This pattern will prevent the code from scaling."
         )
-    elif (context.call_function_name_qual=='callers.usepath.using_path'):
+    elif (context.call_function_name_qual=='callers.commonvalidator.using_path'):
         usepath_this_iter_2 = ''
         secure_global_graph_num_of_edges=my_global_graph_secure.size()
         print('Size of the vulnerable global graph, i.e. the number of edges, is',secure_global_graph_num_of_edges)
         if secure_global_graph_num_of_edges == 0:
-            usepath_this_iter_2 = 'usepath.py (0)'
-            my_global_graph_secure.add_node(filename)
+            usepath_this_iter_2 = 'commonvalidator.py (0)'
+            my_global_graph_secure.add_node(filename, type='commonvalidator')
             print("adding the node for", filename)
-            my_global_graph_secure.add_node(usepath_this_iter_2, type='usepath')
+            my_global_graph_secure.add_node(usepath_this_iter_2)
             print("adding the node for", usepath_this_iter_2)
             my_global_graph_secure.add_weighted_edges_from([(filename,usepath_this_iter_2,2.0)])
         elif secure_global_graph_num_of_edges == 1:
-            usepath_last_iter_2 = 'usepath.py ('+str(secure_global_graph_num_of_edges-1)+')'
-            usepath_this_iter_2 = 'usepath.py ('+str(secure_global_graph_num_of_edges)+')'
-            my_global_graph_secure.add_node(filename)
+            usepath_last_iter_2 = 'commonvalidator.py ('+str(secure_global_graph_num_of_edges-1)+')'
+            usepath_this_iter_2 = 'commonvalidator.py ('+str(secure_global_graph_num_of_edges)+')'
+            my_global_graph_secure.add_node(filename, type='commonvalidator')
             print("adding the node for", filename)
-            my_global_graph_secure.add_node(usepath_this_iter_2, type='usepath')
+            my_global_graph_secure.add_node(usepath_this_iter_2)
             print("adding the node for", usepath_this_iter_2)
             my_global_graph_secure.add_weighted_edges_from([(usepath_last_iter_2,filename,0.0)])
             my_global_graph_secure.add_weighted_edges_from([(filename,usepath_this_iter_2,2.0)])
         else:
-            usepath_last_iter_2 = 'usepath.py ('+str(secure_global_graph_num_of_edges-2)+')'
-            usepath_this_iter_2 = 'usepath.py ('+str(secure_global_graph_num_of_edges)+')'
-            my_global_graph_secure.add_node(filename)
+            round_counter=(global_graph_num_of_edges+1)/2
+            usepath_last_iter_dir_2 = 'commonvalidator.py ('+str(round_counter-1)+')'
+            usepath_this_iter_dir_2 = 'commonvalidator.py ('+str(round_counter)+')'
+            usepath_last_iter_undir_2 = 'commonvalidator.py ('+str(global_graph_num_of_edges-2)+')'
+            usepath_this_iter_undir_2 = 'commonvalidator.py ('+str(global_graph_num_of_edges)+')'
+            my_global_graph.add_node(filename, type='commonvalidator')
             print("adding the node for", filename)
-            my_global_graph_secure.add_node(usepath_this_iter_2, type='usepath')
-            print("adding the node for", usepath_this_iter_2)
-            my_global_graph_secure.add_weighted_edges_from([(usepath_last_iter_2,filename,0.0)])
-            my_global_graph_secure.add_weighted_edges_from([(filename,usepath_this_iter_2,2.0)])
+            my_global_graph.add_node(usepath_this_iter_dir_2)
+            print("adding the node for", usepath_this_iter_dir_2)
+            my_global_graph.add_weighted_edges_from([(usepath_last_iter_dir_2,filename,0.0)])
+            my_global_graph.add_weighted_edges_from([(filename,usepath_this_iter_dir_2,2.0)])
+            my_global_graph_undirected.add_node(filename, type='commonvalidator')
+            print("adding the node for", filename)
+            my_global_graph_undirected.add_node(usepath_this_iter_undir_2)
+            print("adding the node for", usepath_this_iter_undir_2)
+            my_global_graph_undirected.add_weighted_edges_from([(usepath_last_iter_undir_2,filename,0.0)])
+            my_global_graph_undirected.add_weighted_edges_from([(filename,usepath_this_iter_undir_2,2.0)])
     #if context.filename not in files_processed_so_far:
         #print_my_global_graph()
     #The below if condition should be after the above one. Else, if you add the file to the list before, the global graph will never be printed
@@ -674,7 +767,8 @@ def is_path_there_call(context):
     "hack", we are now able to ensure that the game is played just once.
     """
     if ((num_files_processed == expected_num_of_files) and (context.call_function_name_qual == 'app.run')):
-        print("we have processed all the expected files")
+        print("we have processed all the expected files. The files processed are:")
+        #print(files_processed_so_far)
         print_my_global_graph()
         print_my_global_graph_for_inout()
         print_my_global_graph_secure()
@@ -732,6 +826,8 @@ def is_path_there_call(context):
         #print("The simrank in my overall graph is",simrank_overall)
         avg_shortest_path_length = nx.average_shortest_path_length(my_global_graph_undirected, None, None)
         print("The average shortest path length in my_global_graph_undirected is",avg_shortest_path_length)
+        num_nodes_global_undirected_graph = my_global_graph_undirected.number_of_nodes()
+        print("The number of nodes in the undirected graph",num_nodes_global_undirected_graph)
         my_in_degree_iter = my_global_graph_secure.in_degree()
         my_out_degree_iter = my_global_graph_for_inout.out_degree()
         
@@ -751,21 +847,36 @@ def is_path_there_call(context):
         print("Total in flows",total_in)
         print("Total out flows",total_out)
         
+        total_design_flaw = total_out-total_in
+        
         usepath_nodes = []
         non_usepath_nodes = []
-        #The custom attribute 'type' needs to be retrieved, as that is what we have defined to keep track of whether a file is using the required security library (usepath) or no. If yes, then the type of the node will be usepath, else no.
-        for (p, d) in my_global_graph.nodes(data="type"):
-            if d == 'usepath':
-                usepath_nodes.append(p)
+        #The custom attribute 'type' needs to be retrieved, as that is what we have defined to keep track of whether a file is using the required security library (commonvalidator) or no. If yes, then the type of the node will be commonvalidator, else no.
+        for (p1, d1) in my_global_graph.nodes(data="type"):
+            if d1 == 'notcommonvalidator':
+                non_usepath_nodes.append(p1)
             else:
-                non_usepath_nodes.append(p)
+                print("Unexpected error while processing the node",p1,", which is of type",d1)
+                print("Skipping this node")
+                continue
+        for (p2, d2) in my_global_graph_secure.nodes(data="type"):
+            if d2 == 'commonvalidator':
+                print("This node is using usepath as per security needs - ",p2)
+                usepath_nodes.append(p2)
+            else:
+                print("Unexpected error while processing the node",p2,", which is of type",d2)
+                print("Skipping this node")
+                continue
         num_usepath_not_used = len(non_usepath_nodes)
-        num_usepath_repetitions = len(usepath_nodes)
-        print("The number of files using usepath is",total_in)
-        print("The number of files not using usepath, i.e., the repetition of the same logic in usepath, is",num_usepath_not_used)
-        print("Usepath repetitions = ",num_usepath_repetitions)
+        num_usepath_used = len(usepath_nodes)
+        total_nodes = num_usepath_not_used+num_usepath_used
+        print("The number of files using commonvalidator is",num_usepath_used)
+        print("The number of files not using commonvalidator, i.e., the repetition of the same logic in commonvalidator, is",num_usepath_not_used)
+        print("Usepath usage = ",num_usepath_used)
+        print("Nodes using usepath",usepath_nodes)
+        print("Nodes not using usepath",non_usepath_nodes)
         for node in non_usepath_nodes:
-            print(node, "is not calling usepath.py, but is simply replicating the logic. Remove it from here and replace with a call to usepath.py.")
+            print(node, "is not calling commonvalidator.py, but is simply replicating the logic. Remove it from here and replace with a call to commonvalidator.py.")
         
         #T.B.C
         #payment = VCG_value*factor_from_conservation_law (VCG value will be in v out metric, or avg path. Compatibility factor will be categoryRglobal)
@@ -805,27 +916,57 @@ def is_path_there_call(context):
         might be a bit problematic on the time complexity, so would be good to comment on it.
         
         """
-        
+        tautology_cycles_without = 1 #to-do: make a call to the db file and get the number from there, or find a way to have it run through here.
+        tautology_cycles_with = 0 #to-do: make a call to the db file and get the number from there, or find a way to have it run through here.
         math_compatibility_factor = 1 #between 0 and 1?
         math_incompatibility_factor = 1 #between 0 and 1?
         sdlc_cycles = 1 #T.B.C: number of branches/commits can indicate cyclicity factor?
         #need to add the VCG style formula implementation of with/without the player below, to justify things
-        payment_to_others = (num_usepath_not_used+avg_shortest_path_length)/2
-        payment_to_others = payment_to_others*math_compatibility_factor*math_incompatibility_factor
-        payment_to_sec = total_in
-        payment_to_sec = payment_to_sec*math_compatibility_factor*math_incompatibility_factor
+        #Simplified VCG formula for coding the VCG function above:
+        #Paymet_to_target_node = ((cost to others without target node)-(cost to others with the target node))*(-1)
+        # OR
+        #Payment_to_target_node = ((-category_metric_without_target_player)-(-category_metric_with_target_player))*(-1)
+        payment_to_others = (num_usepath_not_used+avg_shortest_path_length+tautology_cycles_without)/3
+        payment_to_others = round(payment_to_others*math_compatibility_factor*math_incompatibility_factor*sdlc_cycles,2)
+        payment_to_others_design = num_usepath_not_used
+        payment_to_others_design = round(payment_to_others_design*math_compatibility_factor*math_incompatibility_factor*sdlc_cycles,2)
+        payment_to_others_iv = avg_shortest_path_length
+        payment_to_others_iv = round(payment_to_others_iv*math_compatibility_factor*math_incompatibility_factor*sdlc_cycles,2)
+        payment_to_others_sqli = tautology_cycles_without
+        payment_to_others_sqli = round(payment_to_others_sqli*math_compatibility_factor*math_incompatibility_factor*sdlc_cycles,2)
+        #VCG payoff formula in action - the inner negative numbers are to express the values as an expense and not income. And the multiplication by -1 is to express
+        #the convention of VCG (where the player who improves the game for all, will result in a negative VCG output)
+        # in the final value that come out as per the previous paper. The payoff matrix value is the VCG value times -1, based on this convention.
+        design_complexity_without = num_files_processed
+        design_complexity_with = num_files_processed-total_in
+        #payment_to_sec_design = ((-design_complexity_without)-(-(design_complexity_with)))*(-1)
+        payment_to_sec_design = get_payoffs_from_vcg(design_complexity_without,design_complexity_with)
+        payment_to_sec_design = round(payment_to_sec_design*math_compatibility_factor*math_incompatibility_factor*sdlc_cycles,2)
+        iv_complexity_without = num_nodes_global_undirected_graph
+        iv_complexity_with = avg_shortest_path_length
+        #payment_to_sec_iv = ((-iv_complexity_without)-(-iv_complexity_with))*(-1)
+        payment_to_sec_iv = get_payoffs_from_vcg(iv_complexity_without,iv_complexity_with)
+        payment_to_sec_iv = round(payment_to_sec_iv*math_compatibility_factor*math_incompatibility_factor*sdlc_cycles,2)
+        #payment_to_sec_sqli = ((-tautology_cycles_without)-(-tautology_cycles_with))*(-1)
+        payment_to_sec_sqli = get_payoffs_from_vcg(tautology_cycles_without, tautology_cycles_with)
+        payment_to_sec_sqli = round(payment_to_sec_sqli*math_compatibility_factor*math_incompatibility_factor*sdlc_cycles,2)
         
         print("Payment to others", payment_to_others)
-        print("Payment to sec",payment_to_sec)
+        print("Payment to sec for securing design vulnerabilities",payment_to_sec_design)
+        print("Payment to sec for securing input validation vulnerabilities",payment_to_sec_iv)
+        print("Payment to sec for securing SQL injection vulnerabilities",payment_to_sec_sqli)
         
         # T.B.C the actual values game_analysis.main()
-        p = 0.2#To be defined by calling game_helper.get_bayesian_game_probability, from standard datasets provided by authorities+vendors
+        p = 0.24#From OWASP for occurrence rate of design issues: https://owasp.org/Top10/A03_2021-Injection/
         #For the probability, we will use the idea of conservation of wealth via material/energy types of wealth
         #Think of this probability as the "guide" on the risk/reward of vuln. categories.
         #T.B.C The math proof for the conservation idea
         #Play around with the probability values and provide various Game Outputs?! Play around for combined Bayesian game, and separate NF games?
         #Where is the conservation/symmetry/compatibility idea most relevant? VCG calculation? Probability calculation? Conservation for risk management and intangible representation, symmetry for design/IV
         #The story to be told here is the merit of combining across categories, and reasoning out which ones to finx/which not (i.e. the dev to fix). If added to defect backlog, then increase penalty.
+        p_des = 0.24
+        p_sqli = 0.15#avg of OWASP Injection and CVE
+        p_iv = 0.28#iv+xss, see if it needs to be averaged with the OWASP percentage
         r"""
         ---------------Meeting 30-08-2023---------------
     
@@ -836,10 +977,12 @@ def is_path_there_call(context):
                 Size of automata/other automata metrics for input validation?
                     Any other STEM metric that is equivalent to input validation or other vuln categories?
                 https://www.cvedetails.com/vulnerabilities-by-types.php
-                    total-all-cats-10-years=83557
-                    total-sqli-10-years=6877 (0.0823)
-                    total-iv-10-years=8096 (0.0969)
-                    total-xss=20982 (0.2511)
+                    total-all-cats-10-years=108,141
+                    total-sqli-10-years from 2015 to 2025=12318/108,141 (0.1139)
+                    total-iv-10-years=5840/108,141 (0.054)
+                    total-xss=34058 (0.3149)
+                    total-design from OWASP = (0.2419)
+                    total-injection from OWASP = (0.1909)
                 Get the dollar value per category from OWASP (and any other source too)
                 CWE link?
                 https://blog.cloudflare.com/application-security-report-q2-2023/
@@ -870,11 +1013,11 @@ def is_path_there_call(context):
         
         ONE-STONE-MULTIPLE-TARGETS
         XSS/Input Validation/Design Issue (multiply by line numbers, and release cycle count pending)
-        Regular Payoff Matrix  (R_iv)                              Jagged Payoff Matrix (J_iv) (idea derived from Irregular Matrix/Jagged Arrays)
+        Regular Payoff Matrix from Jagged  (R_iv)                  Jagged Payoff Matrix (J_iv) (idea derived from Irregular Matrix/Jagged Arrays)
                 Finx|Don't                                                    Finx|Don't
         Fix    -23,20|-20,-20                                      Fix        -23,20|-20,-20
                                                 
-        Don't  0,20|no-game,no-game                                Don't        0,20|
+        Don't  0,20|unknown,unknown                                Don't        0,20|
         
         SH: 0.8
                 L|R
@@ -883,11 +1026,11 @@ def is_path_there_call(context):
         
         ONE-STONE-ONE-TARGET
         SQL Injection Tautology based (multiply, for a DB vendor, by every user in the world who has to parameterize the query)
-        Regular Payoff Matrix  (R_db)                                 Jagged Payoff Matrix (J_db)
+        Regular Payoff Matrix from Jagged  (R_db)                     Jagged Payoff Matrix (J_db)
                 Finx|Don't                                                     Finx|Don't
         Fix     -23,3|-3,-3                                           Fix      -23,3|-3,-3
         
-        Don't   0,3|no-game,no-game                                   Don't     0,3|
+        Don't   0,3|unknown,unknown                                   Don't     0,3|
         
         The combined matrix (we could argue to re-composing matrices to the universal game here):
                         LL|LR|RL|RR
@@ -908,7 +1051,7 @@ def is_path_there_call(context):
         Simple rule - if cycle found, then tautology, hence finx. No questions asked for this category, as it's the DB vendor code (like mysql) 
         Can be less strict for above.
         
-        Above, we went from jagged to regular payoff matrix by stating "skip" in the cell locations that were empty in the 
+        Above, we went from jagged to regular payoff matrix by stating "unknown" in the cell locations that were empty in the 
         jagged payoff matrix
         
         Question: for now, convert jagged matrix into regular matrix by saying value = 0 in missing places? But is that a true indication
@@ -927,49 +1070,230 @@ def is_path_there_call(context):
         """
         #T.B.C - add SDLC metrics
         #in addition to the graph with in-out metrics, is another graph possible to visualize for the same category with finx. Should those 2 be compared with those of other categories in the Bayesian analysis? Or do we keep them separate as analyses? 
-        u1 = np.array([[-(payment_to_others),-(payment_to_others)], [0,0]]) #To be defined by calling game_helper.add_games_payoffs or multiply_games_payoffs, recompose a game
+        u1 = np.array([[-(payment_to_others),-(payment_to_others)], [0,"unknown"]]) #To be defined by calling game_helper.add_games_payoffs or multiply_games_payoffs, recompose a game
         U1 = [u1, u1]
+        u1_design = np.array([[-(payment_to_others_design),-(payment_to_others_design)], [0,-10000]])
+        u1_iv = np.array([[-(payment_to_others_iv),-(payment_to_others_iv)], [0,-10000]])
+        u1_sqli = np.array([[-(payment_to_others_sqli),-(payment_to_others_sqli)], [0,-10000]])
         A1 = ['U', 'D']
         
-        u21 = np.array([[(payment_to_sec),-(payment_to_sec)], [20,"no-game"]]) #To be defined by calling game_helper.add_games_payoffs or multiply_games_payoffs, recompose a game
-        u22 = np.array([[3,-3], [3,"no-game"]]) #randomly made by me, need refining, but more to capture that sec may not finx all - i.e 20 instead of 21 hops, maybe due to false positive/other reason#To be defined by calling game_helper.add_games_payoffs or multiply_games_payoffs, recompose a game
+        u21 = np.array([[payment_to_sec_design,0], [payment_to_sec_design,"unknown"]]) #To be defined by calling game_helper.add_games_payoffs or multiply_games_payoffs, recompose a game
+        u2_design = np.array([[payment_to_sec_design*p_des,0], [payment_to_sec_design*p_des,-10000]])
+        u22 = np.array([[payment_to_sec_iv,0], [payment_to_sec_iv,"unknown"]]) #randomly made by me, need refining, but more to capture that sec may not finx all - i.e 20 instead of 21 hops, maybe due to false positive/other reason#To be defined by calling game_helper.add_games_payoffs or multiply_games_payoffs, recompose a game
+        u2_iv = np.array([[payment_to_sec_iv*p_iv,0], [payment_to_sec_iv*p_iv,-10000]])
         U2 = [u21, u22]
+        u23 = np.array([[payment_to_sec_sqli,0], [payment_to_sec_sqli,"unknown"]])
+        u2_sqli = np.array([[payment_to_sec_sqli*p_sqli,0], [payment_to_sec_sqli*p_sqli,-10000]])
+        U21 = [u21,u21]
+        U22 = [u22,u22]
         a2 = ['L', 'R']
         A2 = [f'{a}{b}' for a in a2 for b in a2]
-        
-        print(f'---- If P2 is type 0, the payoffs are -----')
+        #types for categories? Or was it for finx/find only?
+        print(f'---- Start: If P2 (security) is type 0, the payoffs are -----')
         tab1 = print_payoffs([u1, u21], [A1, a2])
         print(tab1)
+        print(f'---- End: If P2 (security) is type 0, the payoffs are -----')
         
-        print(f'---- If P2 is type 1, the payoffs are -----')
+        print(f'---- Start: If P2 is type 1, the payoffs are -----')
         tab2 = print_payoffs([u1, u22], [A1, a2])
         print(tab2)
+        print(f'---- End: If P2 is type 1, the payoffs are -----')
         
-        print(f'----- Compute full matrix of all types -------')
+        print(f'----- Start: Compute full matrix of all types -------')
         t1, t2, A1, A2 = compute_full_matrix(U1, U2, p, [A1, a2])
         tab_combined = print_payoffs([t1, t2], [A1, A2], 3)
         print(tab_combined)
+        print(f'----- End: Compute full matrix of all types -------')
         
-        print(f'----- A_ --------')
+        print(f'----- Start: u1 -------')
+        print(u1)
+        print(f'----- End: u1 -------')
+        
+        print(f'----- Start: u21 -------')
+        print(u21)
+        print(f'----- End: u21 -------')
+        
+        print(f'----- Start: u22 -------')
+        print(u22)
+        print(f'----- End: u22 -------')
+        
+        print(f'----- Start: tab1 -------')
+        print(tab1)
+        print(f'----- End: tab1 -------')
+        
+        print(f'----- Start: tab2 -------')
+        print(tab2)
+        print(f'----- End: tab2 -------')
+        
+        print(f'----- Start: tab_combined -------')
+        print(tab_combined)
+        print(f'----- End: tab_combined -------')
+        
+        print(f'----- Start: A_ --------')
+        print("Sending the following t1 and t2 to the IESDS method")
+        print("t1")
+        print(t1)
+        print("t2")
+        print(t2)
         A_, T_ = IESDS([A1, A2], [t1, t2], DOPRINT=True)
         strategy_security = A_[1]
         print(type(strategy_security))
+        print("The security strategy for the combined game")
         print(A_[1])
-        print(f'----- T_ --------')
+        print("overall A_")
+        print(A_)
+        print(f'----- End: A_ --------')
+        print(f'----- Start: T_ --------')
         print(T_)
-        print(f'----- IESDS --------')
-        tab_iesds = print_payoffs(T_, A_, 3)
-        print(tab_iesds)
+        print(len(T_))
+        print(type(T_))
+        print(T_[0][0][0])
+        print(T_[1][0][0])
+        print(f'----- End: T_ --------')
         
+        """
+        #Not needed anymore these section, especially since it's erroring out after adding support for unknowns. N.A. for the PhD.
+        print(f'----- Start: IESDS from method --------')
+        #tab_iesds = print_payoffs(T_, A_, 3)
+        print(f'----- End: IESDS from method --------')
+        print(f'----- Start: IESDS here --------')
+        #print(tab_iesds)
+        print(f'----- End: IESDS here --------')
+        """
+        import matplotlib.pyplot as plt
+
+        # Showing each game's metric side by side
+        """
+        # Sample data
+        categories = ['Category A', 'Category B', 'Category C', 'Category D']
+        values = [25, 40, 30, 55]
+        
+        # Create the bar chart
+        plt.bar(categories, values)
+        
+        # Add labels and title
+        plt.xlabel('Categories')
+        plt.ylabel('Values')
+        plt.title('Simple Bar Chart')
+        
+        # Display the chart
+        plt.show()
+        
+        cats = ['A', 'B', 'C', 'D'] # categories
+        vals1, vals2, vals3 = [4, 5, 6, 7], [3, 4, 5, 6], [2, 3, 4, 5]
+        
+        # Bar width and x locations
+        w, x = 0.05, np.arange(len(cats))
+        
+        fig, ax = plt.subplots()
+        ax.bar(x - w, vals1, width=w, label='Set 1')
+        ax.bar(x, vals2, width=w, label='Set 2')
+        ax.bar(x + w, vals3, width=w, label='Set 3')
+        
+        ax.set_xticks(x)
+        ax.set_xticklabels(cats)
+        ax.set_ylabel('Values')
+        ax.set_title('Grouped Bar Chart')
+        ax.legend()
+        
+        plt.show()
+        """
+        cats = ['IV', 'SQLi', 'Design'] # categories
+        vals1, vals2, vals3, vals4, vals5 = [avg_shortest_path_length, tautology_cycles_without, total_design_flaw], [avg_shortest_path_length*2, tautology_cycles_without*2, total_design_flaw*2], [avg_shortest_path_length*3, tautology_cycles_without*3, total_design_flaw*3], [avg_shortest_path_length*4, tautology_cycles_without*4, total_design_flaw*4], [avg_shortest_path_length*5, tautology_cycles_without*5, total_design_flaw*5]
+        
+        # Bar width and x locations
+        w, x = 0.05, np.arange(len(cats))
+        
+        fig, ax = plt.subplots()
+        ax.bar(x-(w*2), vals1, width=w, label='Set 1')
+        ax.bar(x-w, vals2, width=w, label='Set 2')
+        ax.bar(x, vals3, width=w, label='Set 3')
+        ax.bar(x+w, vals4, width=w, label='Set 4')
+        ax.bar(x+(w*2), vals5, width=w, label='Set 5')
+        
+        ax.set_xticks(x)
+        ax.set_xticklabels(cats)
+        ax.set_ylabel('Values')
+        ax.set_title('Cost per category per cycle (for each category, the bars from left to right show a cycle of 1 to 5)')
+        ax.legend()
+        
+        plt.show()
+        
+        #to:do - show following charts - each game's metric individually, and for the universal game (all 3 together)
+        """
+        #Support enumeration doesn't seem to be required for our design, as IESDS on the combined matrix works better
         eqs = list(nashpy.Game(T_[0], T_[1]).support_enumeration())
         print(f'Found {len(eqs)} equilibria')
+        print(eqs)
+        print(type(eqs))
         for i,eq in enumerate(eqs):
             print(f'{i+1}: s1 = {eq[0]}, s2 = {eq[1]}')
+        """
+        nashpy_game_design = nashpy.Game(u1_design,u2_design)
+        print("nashpy_game_design")
+        print(nashpy_game_design)
+        eqs_design = nashpy_game_design.support_enumeration()
+        print("nashpy eqs_design")
+        print(list(eqs_design))
+        sigma_dev = np.array([0, 1])#pre-calculated eqs and then hardcoded. Need an automated way of reading eqs_* and building this array from it
+        sigma_sec = np.array([1, 0])
+        design_game_solution = nashpy_game_design[sigma_dev, sigma_sec]
+        print("Design Game Solution Utilities/Payoffs")
+        print(design_game_solution)
+        nashpy_game_iv = nashpy.Game(u1_iv,u2_iv)
+        print("nashpy_game_iv")
+        print(nashpy_game_iv)
+        eqs_iv = nashpy_game_iv.support_enumeration()
+        print("nashpy eqs_iv")
+        print(list(eqs_iv))
+        iv_game_solution = nashpy_game_iv[sigma_dev, sigma_sec]
+        print("IV Game Solution Utilities/Payoffs")
+        print(iv_game_solution)
+        nashpy_game_sqli = nashpy.Game(u1_sqli,u2_sqli)
+        print("nashpy_game_sqli")
+        print(nashpy_game_sqli)
+        eqs_sqli = nashpy_game_sqli.support_enumeration()
+        print("nashpy eqs_sqli")
+        print(list(eqs_sqli))
+        sqli_game_solution = nashpy_game_sqli[sigma_dev, sigma_sec]
+        print("SQLi Game Solution Utilities/Payoffs")
+        print(sqli_game_solution)
+        """
+        # 2. Generate x-values for the sample convex function. Obviously, please change this to the convex game
+        x_values = np.linspace(-5, 5, 100) # 100 points between -5 and 5
+        
+        # 3. Calculate corresponding y-values. Obviously, please change this to the convex game
+        y_values = convex_function(x_values)
+        
+        # 4. Plot the function
+        plt.figure(figsize=(8, 6))
+        plt.plot(x_values, y_values, label=r'$f(x) = x^2$', color='blue')
+        plt.xlabel('x')
+        plt.ylabel('f(x)')
+        plt.title('Plot of a Convex Function')
+        plt.grid(True)
+        plt.legend()
+        plt.show()
+        """
+        x_values = [0.0, 0.11, 0.24, 9.7421, 20.2508,0]
+        y_values = [1,2,3,4,5,1]
+        # Plot the points as circles
+        plt.plot(x_values, y_values, 'o-')
+        
+        # Add labels and title (optional)
+        plt.xlabel("v[S]")
+        plt.ylabel("Sequence number")
+        plt.title("Convexity of the payoffs")
+        
+        # Display the plot
+        plt.show()
         for strategy_string in strategy_security:
             for strategy in strategy_string:
                 if strategy == 'L':
                     #Use modularity/cyclicity for decision?
                     print("will finx this file/line, if the annotation @finx is encountered")
+                else:
+                    print("Don't finx")
         #FINAL NUMBERS TO SHOW/INTERPRET - speed/accuracy/something else? - work with experimental values
         #SHOW THEORETICAL STRENGTH FOR RECOMPOSING TO UNIVERSAL GAME? - work with dummy values
         #ARGUE ABOUT MIX OF (THEORETICAL STRENGTH+EXPERIMENTAL STRENGTH)/2?
@@ -979,7 +1303,7 @@ def is_path_there_call(context):
         # Modify AST and write back source: https://stackoverflow.com/questions/768634/parse-a-py-file-read-the-ast-modify-it-then-write-back-the-modified-source-c
         #T.B.C If not re-write source, then aspects?
         #repetition/secure code in wrong location is decomposed game, we then combine/re-compose it
-        #for file in non_usepath_nodes:
+        #for file in non_commonvalidator_nodes:
             #print(bandit.linecache.getlines(file,module_globals=None))
     else:
         print("we have not processed all the expected files")
