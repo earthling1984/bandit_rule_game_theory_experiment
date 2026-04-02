@@ -7,7 +7,7 @@ banditrule
 - Install ([![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit))
 
 ## Project status
-This is a work-in-progress as of Feb 2025, with my PhD expected to finish around mid to late 2026. The experimental setup is expected to be stable by March 2025, with a paper planned to be published in 2025. Updates will be made here as needed.
+This is a part of my PhD degree pursuit, with my PhD expected to finish around mid to late 2026. The experimental setup is expected to be stable by March 2025, with a paper planned to be published in 2026. Updates will be made here as needed.
 
 ## Description
 This work is an experimental setup for the theoretical concepts of my PhD. Bandit is a SAST (Static Application Security Testing) scanning tool, which is aimed at Python source code. The way a Bandit plugin works - you need to:
@@ -22,10 +22,10 @@ The aim of my research is to have the work sit in a compiler like application li
 4. Once Bandit runs, the plugin logic will kick in
 5. Currently, the plugin checks for the usage of an output variable of a Flask webapp, and ensures that it's not of the type Path. The plugin also checks if the low-level design is broken, mainly by ensuring that the defensive code is in an expected file, failing which we are staring at potentially bad defensive code implementation by somebody else, and similar security+maintenance nightmares.
 
-Deeper dive into our plugin (T.B.C description/screenshots to say which point is implemented in which section of using_path_type.py):
+Deeper dive into our plugin (description/screenshots to say which point is implemented in which section of using_path_type.py):
 1. Plug into the AST that Bandit is working through
 2. Build our own tree from it, which represents some (explained deeper in some appropriate comment in each .py file) insecure code pattern
-3. Like in our paper 1, we analyze this tree/graph (TBC tree or graph. Also to take care - potential np complete/np hard problems), and see if it will end up in the dev and security community not-cooperating with each other.
+3. Like in our paper 1, we analyze this data structure, and see if it will end up in the dev and security community not-cooperating with each other.
 4. The VCG design logic will re-design the game, and mainly, provide the payoff values for our game
 5. We then analyze the re-designed game, and decide if we finx or not.
 6. The decision making will involve a threshold design, which will derive from the laws of conservation of energy/matter. This will serve as the basis for the probabilities that we need for the Bayesian game in the end.
@@ -73,7 +73,7 @@ One test case checked was if the defensive code is in an unexpected class, or no
 - Plugin types based on Abstract Grammar?: https://docs.python.org/3/library/ast.html
 
 ## Authors and acknowledgment
-TBC
+Mithun Vaidhyanathan, Weisheng Si, Bahman Javadi, Seyit Camtepe
 
 ## License
 Apache-2.0 license
