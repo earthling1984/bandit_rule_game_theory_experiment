@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name='MithunPathRule',
     version='1',
-    description='TBC',
+    description='Experimental plugin for my PhD research',
     url='None',
     packages=['pathrule'],
     author='Mithun Vaidhyanathan',

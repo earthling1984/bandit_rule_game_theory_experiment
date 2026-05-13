@@ -1,6 +1,5 @@
 #
-# Copyright 2023 Mithun Vaidhyanathan
-# License: GNU License
+# License: Apache 2.0
 #
 from bandit.core.context import Context
 import ast
@@ -55,10 +54,14 @@ my_global_graph_secure = nx.DiGraph()#to link the files using the sec lib
 my_global_graph_undirected = nx.Graph()#to get the average path, as the graph for input validation type issues
 files_processed_so_far = []
 #Mainly to help with the experiment.
-expected_list_of_files = ['C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\callers\\commonvalidator.py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\db.py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (10).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (11).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (12).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (13).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (14).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (15).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (16).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (17).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (18).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (19).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (2).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (20).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (3).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (4).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (5).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (6).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (7).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (8).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy (9).py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello - Copy.py', 'C:\\Users\\<Your-Location>\\Eclipse Workspace\\mypythonbadcode\\development-mithun-branch\\hello.py']
-"""
+expected_list_of_files = ['commonvalidator.py', 'db.py',  'hello.py', 'hello - Copy.py', 'hello - Copy (2).py', 'hello - Copy (3).py', 'hello - Copy (4).py', 
+                          'hello - Copy (5).py', 'hello - Copy (6).py',
+                          'hello - Copy (7).py', 'hello - Copy (8).py', 'hello - Copy (9).py', 'hello - Copy (10).py', 'hello - Copy (11).py', 
+                          'hello - Copy (12).py', 'hello - Copy (13).py', 'hello - Copy (14).py', 'hello - Copy (15).py', 'hello - Copy (16).py', 
+                          'hello - Copy (17).py', 'hello - Copy (18).py', 'hello - Copy (19).py', 'hello - Copy (20).py']
 #the smaller list for a smaller sample
-expected_list_of_files = ['']
+r"""
+expected_list_of_files = ['commonvalidator.py', 'db.py', 'hello - Copy (16).py', 'hello - Copy (17).py', 'hello - Copy (18).py', 'hello - Copy (19).py', 'hello - Copy (20).py', 'hello - Copy.py', ]
 """
 pass_number = 0
 finxed_line = "name=up.using_path(firstname)"
@@ -277,7 +280,6 @@ def find_undominated_actions(U_in, i, A, DOPRINT=False):
                 UNK1=np.delete(U[ia],unknown_at)
                 UNK2=np.delete(U[ia_],unknown_at)
             # 2.b check if ia_ always gives a higher payoff than ia (i.e. domination)
-            #T.B.C adding a check for "unknown" in a value ((U[ia_] != "unknown") or (U[ia] != "unknown"))
             if UNKNOWN == False:
                 if np.all(U[ia_] > U[ia]):
                     print("found dominated strategy") 
@@ -455,92 +457,27 @@ def compute_full_matrix(U1, U2, p, action_names=None):
         A2 = [f'{a}{b}' for a in a2 for b in a2]
         
     return t1, t2, A1, A2
-"""
-#Backup of the 3 graph show methods
+
+
 def print_my_global_graph():
     print("Printing my_global_graph")
     nx.draw(my_global_graph, with_labels=True, font_weight='bold', font_size=20)
-    pylab.show()
+    #pylab.show() #Commented for generation of timing data. Uncomment if you need to visualize this graph.
 
 def print_my_global_graph_for_inout():
     
-    This would be the graph that will help with identifying design issues. Envisioned for situations where a secure library
-    is expected to be used, but isn't used in that expected location.
+    #This would be the graph that will help with identifying design issues. Envisioned for situations where a secure library
+    #is expected to be used, but isn't used in that expected location.
     
     print("Printing my_global_graph_for_inout")
     nx.draw(my_global_graph_for_inout, with_labels=True, font_weight='bold', font_size=20)
-    pylab.show()
+    #pylab.show() #Commented for generation of timing data. Uncomment if you need to visualize this graph.
     
 def print_my_global_graph_secure():
     print("Printing my_global_graph_secure")
     nx.draw(my_global_graph_secure, with_labels=True, font_weight='bold', font_size=20)
-    pylab.show()
-"""
-    
-def print_my_global_graph():
-    print("Printing my_global_graph")
-    nx.draw(my_global_graph, with_labels=True, font_weight='bold', font_size=20)
-    #pylab.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
-    
-    # Set the 'len' attribute based on the 'weight' for visual representation
-    edge_lengths = {}
-    for u, v, data in my_global_graph.edges(data=True):
-        # You can apply a scaling factor or transformation if needed
-        edge_lengths[(u, v)] = {'len': data['weight']} 
-    
-    nx.set_edge_attributes(my_global_graph, edge_lengths)
-    
-    # Use a layout algorithm that respects the 'len' attribute, like 'neato' from Graphviz
-    pos = graphviz_layout(my_global_graph, prog='neato')
-    
-    nx.draw_networkx(my_global_graph, pos=pos, with_labels=True, font_size=30)
-    nx.draw_networkx_edge_labels(my_global_graph, pos, edge_labels=nx.get_edge_attributes(my_global_graph, 'weight'))
-    #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
-
-def print_my_global_graph_for_inout():
-    """
-    This would be the graph that will help with identifying design issues. Envisioned for situations where a secure library
-    is expected to be used, but isn't used in that expected location.
-    """
-    print("Printing my_global_graph_for_inout")
-    nx.draw(my_global_graph_for_inout, with_labels=True, font_weight='bold', font_size=20)
-    #pylab.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
-    
-        # Set the 'len' attribute based on the 'weight' for visual representation
-    edge_lengths = {}
-    for u, v, data in my_global_graph_for_inout.edges(data=True):
-        # You can apply a scaling factor or transformation if needed
-        edge_lengths[(u, v)] = {'len': data['weight']} 
-    
-    nx.set_edge_attributes(my_global_graph_for_inout, edge_lengths)
-    
-    # Use a layout algorithm that respects the 'len' attribute, like 'neato' from Graphviz
-    pos = graphviz_layout(my_global_graph_for_inout, prog='neato')
-    
-    nx.draw_networkx(my_global_graph_for_inout, pos=pos, with_labels=True, font_size=30)
-    nx.draw_networkx_edge_labels(my_global_graph_for_inout, pos, edge_labels=nx.get_edge_attributes(my_global_graph_for_inout, 'weight'))
-    #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
-    
-def print_my_global_graph_secure():
-    print("Printing my_global_graph_secure")
-    nx.draw(my_global_graph_secure, with_labels=True, font_weight='bold', font_size=20)
-    #pylab.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
-    
-        # Set the 'len' attribute based on the 'weight' for visual representation
-    edge_lengths = {}
-    for u, v, data in my_global_graph_secure.edges(data=True):
-        # You can apply a scaling factor or transformation if needed
-        edge_lengths[(u, v)] = {'len': data['weight']} 
-    
-    nx.set_edge_attributes(my_global_graph_secure, edge_lengths)
-    
-    # Use a layout algorithm that respects the 'len' attribute, like 'neato' from Graphviz
-    pos = graphviz_layout(my_global_graph_secure, prog='neato')
-    
-    nx.draw_networkx(my_global_graph_secure, pos=pos, with_labels=True, font_size=30)
-    nx.draw_networkx_edge_labels(my_global_graph_secure, pos, edge_labels=nx.get_edge_attributes(my_global_graph_secure, 'weight'))
-    #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
-    
+    #pylab.show() #Commented for generation of timing data. Uncomment if you need to visualize this graph.
+  
 r"""
 A function to calculate and return payoff values based on VCG concepts. Takes 2 parameters - a basis for the vulnerability category,
 and a structure of the actual code to be analyzed. For example, speaking of the selfish routing example, we figure out in the graph who
@@ -656,7 +593,6 @@ def is_path_there_call(context):
     inloop_file_to_be_loaded.close()
     
 
-    #T.B.C the actual values vcg_analysis.main()
     my_graph = nx.DiGraph() 
      
     # Add edges to to the graph object
@@ -772,7 +708,7 @@ def is_path_there_call(context):
         
         #Directed graph hub-and-spoke
         my_global_graph_for_inout.add_weighted_edges_from([
-                                (filename,'commonvalidator.py',2.0)])
+                                ('commonvalidator.py',filename,2.0)])
         
         return bandit.Issue(
             severity=bandit.HIGH,
@@ -828,13 +764,13 @@ def is_path_there_call(context):
     print("We expect to process", expected_num_of_files)
     r"""
     Checking for app.run isn't the most elegant check. The reason for this check is to catch the moment when the plugin has completed
-    processing all files. Since the plugin itself runs in a loop, until all files are processed, and passes control back to bandit, the ideal
-    location to catch the moment will be somewhere suitable in bandit. The reason for such a check is to send the final graph to the game
-    logic, and take a decision to finx or not. If done in the plugin, the game will be played again and again for each context and unfinished
-    graph, which we don't want. We want it all to happen, after the plugin has done it's work. Due to the Ph.D. time constraints, and the 
+    processing all files. The reason for such a check is to send the final graph to the game logic, and take a decision to finx or not. 
+    If done in the plugin, the game will be played again and again for each context and unfinished
+    graph, which we don't want. We want it all to happen, after the plugin has done its work. Given our experimental code written in flask,
+    the final context we know is going to be a call to app.run. Due to the Ph.D. time constraints, and the 
     fact that the focus of my topic isn't SAST/compilers in general, or bandit in general, I may consider enhancing things post my degree. 
-    For now, this condition is sufficient, for intercepting the moment when the plugin has done it's bit in processing the files. With this
-    "hack", we are now able to ensure that the game is played just once.
+    For now, this condition is sufficient, for intercepting the moment when the plugin has done its bit in processing the files. With this
+    "hack", we are now able to ensure that the game is played once after all contexts of all files have been processed.
     """
     if ((num_files_processed == expected_num_of_files) and (context.call_function_name_qual == 'app.run')):
         print("we have processed all the expected files. The files processed are:")
@@ -843,7 +779,6 @@ def is_path_there_call(context):
         print_my_global_graph_for_inout()
         print_my_global_graph_secure()
         r"""
-        TBC Below values are dummy ones. Next is to send the above graph below, and do the game analysis on our actual graph
         The question to answer - given a graph of some size, which points to how complex the math behind the defensive code has become,
         can our game analysis work around it, and suggest simpler designs. For our experiment, we have the usage of the path type in flask,
         and the presence of the defensive code expected in one file. When these expectations get violated, we will lean on our game analysis
@@ -894,7 +829,10 @@ def is_path_there_call(context):
         
         #simrank_overall = nx.simrank_similarity(my_global_graph, None, None, 0.9, 1000, 0.0001)
         #print("The simrank in my overall graph is",simrank_overall)
-        avg_shortest_path_length = nx.average_shortest_path_length(my_global_graph_undirected, None, None)
+        try:
+            avg_shortest_path_length = nx.average_shortest_path_length(my_global_graph_undirected, None, None)
+        except:
+            avg_shortest_path_length = 0
         print("The average shortest path length in my_global_graph_undirected is",avg_shortest_path_length)
         num_nodes_global_undirected_graph = my_global_graph_undirected.number_of_nodes()
         print("The number of nodes in the undirected graph",num_nodes_global_undirected_graph)
@@ -913,7 +851,6 @@ def is_path_there_call(context):
             if node_out_degree[1]>0:
                 print(node_out_degree[0],"has out degree greater than 0, which is equal to",node_out_degree[1])
         
-        #TBC: incorporating this into the VCG values, plus the relation between CVE severity and global game
         print("Total in flows",total_in)
         print("Total out flows",total_out)
         
@@ -948,9 +885,6 @@ def is_path_there_call(context):
         for node in non_usepath_nodes:
             print(node, "is not calling commonvalidator.py, but is simply replicating the logic. Remove it from here and replace with a call to commonvalidator.py.")
         
-        #T.B.C
-        #payment = VCG_value*factor_from_conservation_law (VCG value will be in v out metric, or avg path. Compatibility factor will be categoryRglobal)
-        #payment = payment*future_x_factor_if_varying_universe (incompatibility factor?)
         
         r"""
         Logic behind the different measurements:
@@ -961,7 +895,7 @@ def is_path_there_call(context):
         Cyclical graph for tautology? Modeling relations as graphs, and analyzing the properties?
         
         Avg path calculation could be the low level metric, and cat. specific metric the high level. So, avg path could apply to call cats.
-        For XSS, the high level metric could be language level, where 3 is good (regex/strict). For SQL, relation metric (TBC)
+        For XSS, the high level metric could be language level, where 3 is good (regex/strict). For SQL, relation metric
         
         The avg path is to prevent repetition of the high level defensive measure.
         
@@ -1026,11 +960,9 @@ def is_path_there_call(context):
         print("Payment to sec for securing input validation vulnerabilities",payment_to_sec_iv)
         print("Payment to sec for securing SQL injection vulnerabilities",payment_to_sec_sqli)
         
-        # T.B.C the actual values game_analysis.main()
         p = 0.24#From OWASP for occurrence rate of design issues: https://owasp.org/Top10/A03_2021-Injection/
         #For the probability, we will use the idea of conservation of wealth via material/energy types of wealth
         #Think of this probability as the "guide" on the risk/reward of vuln. categories.
-        #T.B.C The math proof for the conservation idea
         #Play around with the probability values and provide various Game Outputs?! Play around for combined Bayesian game, and separate NF games?
         #Where is the conservation/symmetry/compatibility idea most relevant? VCG calculation? Probability calculation? Conservation for risk management and intangible representation, symmetry for design/IV
         #The story to be told here is the merit of combining across categories, and reasoning out which ones to finx/which not (i.e. the dev to fix). If added to defect backlog, then increase penalty.
@@ -1173,8 +1105,11 @@ def is_path_there_call(context):
         t1, t2, A1, A2 = compute_full_matrix(U1, U2, p, [A1, a2])
         tab_combined = print_payoffs([t1, t2], [A1, A2], 3)
         print(tab_combined)
+        #comment/uncomment combined sqli game for paper/thesis as required
+        r"""
         t3, t4, A3, A4 = compute_full_matrix(U1, U3, p, [A1, a2])
         tab_combined_sql = print_payoffs([t3, t4], [A3, A4], 3)
+        """
         print(f'----- End: Compute full matrix of all types -------')
         
         print(f'----- Start: u1 -------')
@@ -1200,28 +1135,35 @@ def is_path_there_call(context):
         print(f'----- Start: tab_combined -------')
         print(tab_combined)
         print(f'----- End: tab_combined -------')
-        
+        #comment/uncomment combined sqli game for paper/thesis as required
+        r"""
         print(f'----- Start: tab_combined_sql -------')
         print(tab_combined_sql)
         print(f'----- End: tab_combined_sql -------')
-        
+        """
         print(f'----- Start: A_ --------')
         print("Sending the following t1 and t2 to the IESDS method")
         print("t1")
         print(t1)
         print("t2")
         print(t2)
+        #comment/uncomment combined sqli game for paper/thesis as required
+        r"""
         print("t3")
         print(t3)
         print("t4")
         print(t4)
+        """
         A_, T_ = IESDS([A1, A2], [t1, t2], DOPRINT=True)
         strategy_security = A_[1]
         print(type(strategy_security))
         print("The security strategy for the combined game")
+        #comment/uncomment combined sqli game for paper/thesis as required
+        r"""
         A2_, T2_ = IESDS([A3, A4], [t3, t4], DOPRINT=True)
         strategy_security_sql = A_[1]
         print(type(strategy_security_sql))
+        """
         print(A_[1])
         print("overall A_")
         print(A_)
@@ -1245,6 +1187,8 @@ def is_path_there_call(context):
         """
         import matplotlib.pyplot as plt
         plt.rcParams.update({'font.size': 40})
+        plt.rcParams["font.family"] = "serif"
+        plt.rcParams["font.serif"] = ["Times New Roman"]
         # Showing each game's metric side by side
         """
         # Sample data
@@ -1300,7 +1244,7 @@ def is_path_there_call(context):
         #ax.set_title('Cost per category per cycle (for each category, the bars from left to right show a cycle of 1 to 5)')
         ax.legend(fontsize=24)
         
-        #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
+        #plt.show() #uncomment after getting timing data. This was especially done after submitting to the journal, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
         
         #to:do - show following charts - each game's metric individually, and for the universal game (all 3 together)
         """
@@ -1369,7 +1313,7 @@ def is_path_there_call(context):
         #plt.title("Convexity of the core - IV and Design combined game")
         plt.tight_layout()
         # Display the plot
-        #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
+        #plt.show() #uncomment after getting timing data. This was especially done after submitting to the journal, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
         
         x_values = [0.00,1.00,0.00]
         y_values = [1,2,1]
@@ -1382,7 +1326,7 @@ def is_path_there_call(context):
         #plt.title("Convexity of the core - SQLi and Design combined game")
         
         # Display the plot
-        #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
+        #plt.show() #uncomment after getting timing data. This was especially done after submitting to the journal, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
         
         x_values = [0.00,0.24,7.37,20.25,0.00]
         y_values = [1,2,3,4,1]
@@ -1395,7 +1339,7 @@ def is_path_there_call(context):
         #plt.title("IV and Design games payoffs (separate and combined)")
         
         # Display the plot
-        #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
+        #plt.show() #uncomment after getting timing data. This was especially done after submitting to the journal, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
         x_values = [0.00,0.15,0.24,1.00,0.00] #Individual payoffs of SQLi and Design games, and Combined one, for Security player
         y_values = [1,2,3,4,1]
         # Plot the points as circles
@@ -1407,7 +1351,7 @@ def is_path_there_call(context):
         #plt.title("Convexity of the payoffs for the security player - SQLi and Design games, separate and combined")
         
         # Display the plot
-        #plt.show() #uncomment after getting timing data. This was especially done after submitting to IEEE, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
+        #plt.show() #uncomment after getting timing data. This was especially done after submitting to the journal, as Code Ocean works differently. Comment/uncomment the pylab.show() as is necessary.
         for strategy_string in strategy_security:
             for strategy in strategy_string:
                 if strategy == 'L':
@@ -1415,7 +1359,9 @@ def is_path_there_call(context):
                     print("will finx this file/line, if the annotation @finx is encountered")
                 else:
                     print("Don't finx")
-                    
+        
+        #comment/uncomment combined sqli game for paper/thesis as required
+        r"""
         for strategy_string_sql in strategy_security_sql:
             for strategy_sql in strategy_string_sql:
                 if strategy_sql == 'L':
@@ -1423,6 +1369,7 @@ def is_path_there_call(context):
                     print("will finx this file/line for sql, if the annotation @finx is encountered")
                 else:
                     print("Don't finx")
+        """
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
         print("Elapsed time is",elapsed_time)
